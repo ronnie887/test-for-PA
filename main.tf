@@ -2,11 +2,15 @@ terraform {
   required_version = ">= 1.5.0"
 
   required_providers {
-    auzrerm = {
+    azurerm = {
         source = "hashicorp/azurerm"
         version = "~> 3.100"
     }
   }
+}
+
+provider "azurerm" {
+  features {}
 }
 
 ## Resource Group
@@ -16,9 +20,9 @@ resource "azurerm_resource_group" "main" {
 }
 
 ## Storage Account (ADLS Gen2)
-resource "auzrerm_storage_account" "datalake" {
+resource "azurerm_storage_account" "datalake" {
   name = azurepasa
-  resource_group_name = azurerm_resource_group.name
+  resource_group_name = azurerm_resource_group.main.name
   location = azurerm_resource_group.main.location
   account_tier = "Standard"
   account_replication_type = "LRS"
@@ -29,7 +33,7 @@ resource "auzrerm_storage_account" "datalake" {
 
 ## Key Vault
 resource "azurerm_key_vault" "main" {
-  name = pa-azure-kv
+  name = "pa-azure-kv"
   location = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   tenant_id = data.azurerm_client_config.current.tenant_id
@@ -77,9 +81,15 @@ resource "azurerm_service_plan" "main" {
   name = "pa-webapp-plan"
   location = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
+  os_type = "Linux"
+  sku_name = "B1"
+}
+
+resource "azurerm_windows_web_app" "portal" {
+  name = "pa-webapp"
+  location = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
   service_plan_id = azurerm_service_plan.main.id
 
-  site_config {
-    always_on = true
-  }
+  site_config {always_on = true}
 }
