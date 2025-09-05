@@ -4,7 +4,7 @@ terraform {
   required_providers {
     azurerm = {
         source = "hashicorp/azurerm"
-        version = "~> 3.100"
+        version = "~> 3.0.0"
     }
   }
 }
@@ -26,7 +26,7 @@ resource "azurerm_storage_account" "datalake" {
   location = azurerm_resource_group.main.location
   account_tier = "Standard"
   account_replication_type = "LRS"
-  kind = "StorageV2"
+  account_kind = "StorageV2"
   enable_https_traffic_only = true
   is_hns_enabled = true # Required for ADLS Gen2
 }
