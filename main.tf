@@ -73,7 +73,7 @@ resource "azurerm_synapse_workspace" "main" {
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "main" {
   name = "synapsefs"
-  storage_account_id = auzrerm_storage_account.datalake.id
+  storage_account_id = azurerm_storage_account.datalake.id
 }
 
 ## App Service Plan + Web App
