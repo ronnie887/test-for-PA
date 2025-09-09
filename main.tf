@@ -4,7 +4,7 @@ terraform {
   required_providers {
     azurerm = {
         source = "hashicorp/azurerm"
-        version = "~> 3.0.0"
+        version = "~> 3.0"
     }
   }
 }
@@ -27,7 +27,7 @@ resource "azurerm_storage_account" "datalake" {
   account_tier = "Standard"
   account_replication_type = "LRS"
   account_kind = "StorageV2"
-  #enable_https_traffic_only = true
+  enable_https_traffic_only = true
   is_hns_enabled = true # Required for ADLS Gen2
 }
 
@@ -85,7 +85,7 @@ resource "azurerm_service_plan" "main" {
   sku_name = "B1"
 }
 
-resource "azurerm_windows_web_app" "portal" {
+resource "azurerm_linux_web_app" "portal" {
   name = "pa-webapp"
   location = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
