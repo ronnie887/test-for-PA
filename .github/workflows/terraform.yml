@@ -2,9 +2,8 @@ name: Terraform Deploy
 
 on:
   push:
-    branches:
-      - main   # or your default branch
-  workflow_dispatch:   # allow manual runs
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   terraform:
@@ -16,10 +15,6 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
-    defaults:
-      run:
-        working-directory: .  # your terraform folder
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -30,11 +25,7 @@ jobs:
           terraform_version: 1.5.7
 
       - name: Terraform Init
-        run: terraform init \
-          -backend-config="resource_group_name=rg-tfstate" \
-          -backend-config="storage_account_name=sapasa" \
-          -backend-config="container_name=tfstate" \
-          -backend-config="key=mainproject.tfstate"
+        run: terraform init
 
       - name: Terraform Validate
         run: terraform validate
