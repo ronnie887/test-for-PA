@@ -1,10 +1,10 @@
 resource "azurerm_resource_group" "rg" {
-  name = "rg-test-terra"
-  location = "East US"
+  name = var.resource_group_name
+  location = var.location
 }
 
 resource "azurerm_storage_account" "adls" {
-  name = "sapasa"
+  name = "${var.adls_storage_account_name}${var.environment}"
   resource_group_name = azurerm_resource_group.rg.name
   location = azurerm_resource_group.rg.location
   account_tier = "Standard"
