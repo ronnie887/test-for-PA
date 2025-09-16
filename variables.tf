@@ -81,5 +81,5 @@ variable "data_factory_name" {
 variable "app_name" {
   description = "Name of the Azure AD application"
   type        = string
-  default     = "integriX"
+  default     = "integrix"
 }
