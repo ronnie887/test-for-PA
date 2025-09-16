@@ -37,7 +37,7 @@ variable "postgres_server_name" {
 variable "postgres_admin_username" {
   description = "Administrator username for PostgreSQL"
   type        = string
-  default     = "pgadmin-integriX"
+  default     = "pgadmin"
   sensitive   = true
 }
 
