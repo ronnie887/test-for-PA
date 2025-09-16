@@ -25,7 +25,7 @@ variable "environment" {
 variable "key_vault_name" {
   description = "Name of the Azure Key vault "
   type = string
-  default = "kvrandomasach"
+  default = "kvasach"
 }
 
 variable "postgres_server_name" {
