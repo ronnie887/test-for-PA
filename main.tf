@@ -226,7 +226,7 @@ resource "azurerm_storage_account" "function_storage" {
 
 # Azure Cache for Redis
 resource "azurerm_redis_cache" "redis" {
-  name                = "${var.redis_cache_name}-${var.app_name}-${var.environment}-${random_string.suffix.result}"
+  name                = "${var.redis_cache_name}-${var.app_name}-${var.environment}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   capacity            = 0    # 250MB for Basic C0
