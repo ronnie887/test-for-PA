@@ -156,8 +156,8 @@ resource "azurerm_static_site" "static_web_app" {
   name                = "${var.static_web_app_name}-${var.app_name}-${var.environment}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  sku_tier            = "Free"
-  sku_size            = "Free"
+  sku_tier            = "Standard"
+  sku_size            = "Standard"
 
   identity {
     type         = "UserAssigned"
@@ -175,7 +175,7 @@ resource "azurerm_service_plan" "function_plan" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
-  sku_name            = "Y1"  # Consumption plan
+  sku_name            = "EP1"  # Consumption plan
 
   tags = {
     Environment = var.environment
