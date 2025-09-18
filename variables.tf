@@ -83,3 +83,33 @@ variable "app_name" {
   type        = string
   default     = "integrix"
 }
+
+variable "static_web_app_name" {
+  description = "Name of the Static web app"
+  type = string
+  default = "swa"
+}
+
+variable "function_app_name" {
+  description = "Name of the function app"
+  type = string
+  default = "func"
+}
+
+variable "function_app_plan_name" {
+  description = "Name of the function app service plan"
+  type = string
+  default = "func-plan"
+}
+
+variable "function_storage_name" {
+  description = "Name of the storage account for Function App"
+  type = string
+  default = "funcst"
+}
+
+variable "redis_cache_name" {
+  description = "Name of the Redis Cache"
+  type = string
+  default = "redis"
+}

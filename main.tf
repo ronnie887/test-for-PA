@@ -151,6 +151,99 @@ resource "azurerm_data_factory" "adf" {
   }
 }
 
+# Azure Static Web App
+resource "azurerm_static_site" "static_web_app" {
+  name                = "${var.static_web_app_name}-${var.app_name}-${var.environment}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  sku_tier            = "Free"
+  sku_size            = "Free"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.uami_core.id]
+  }
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+# Azure Function App with Consumption Plan
+resource "azurerm_service_plan" "function_plan" {
+  name                = "${var.function_app_plan_name}-${var.app_name}-${var.environment}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  os_type             = "Linux"
+  sku_name            = "Y1"  # Consumption plan
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "azurerm_linux_function_app" "function_app" {
+  name                = "${var.function_app_name}-${var.app_name}-${var.environment}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  service_plan_id     = azurerm_service_plan.function_plan.id
+  storage_account_name       = azurerm_storage_account.function_storage.name
+  storage_account_access_key = azurerm_storage_account.function_storage.primary_access_key
+
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.uami_core.id]
+  }
+
+  app_settings = {
+    "FUNCTIONS_WORKER_RUNTIME" = "python"
+    "AzureWebJobsFeatureFlags"  = "EnableWorkerIndexing"
+  }
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+# Storage Account for Function App (required)
+resource "azurerm_storage_account" "function_storage" {
+  name                     = "${var.function_storage_name}${var.app_name}${var.environment}"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+# Azure Cache for Redis
+resource "azurerm_redis_cache" "redis" {
+  name                = "${var.redis_cache_name}-${var.app_name}-${var.environment}-${random_string.suffix.result}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  capacity            = 0    # 250MB for Basic C0
+  family              = "C"  # Basic/Standard
+  sku_name            = "Basic"
+  #enable_non_ssl_port = false
+  minimum_tls_version = "1.2"
+
+  #redis_configuration {
+    #enable_authentication = true
+  #}
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
 # Azure AD App & SP
 resource "azuread_application" "app" {
   display_name = "${var.app_name}-${var.environment}"
@@ -170,5 +263,11 @@ resource "azurerm_role_assignment" "adf_storage" {
 resource "azurerm_role_assignment" "webapp_keyvault" {
   scope = azurerm_key_vault.kv.id
   role_definition_name = "Key Vault Secrets User"
+  principal_id = azurerm_user_assigned_identity.uami_core.principal_id
+}
+
+resource "azurerm_role_assignment" "static_web_app_storage" {
+  scope = azurerm_storage_account.adls.id
+  role_definition_name = "Storage Blob Data Reader"
   principal_id = azurerm_user_assigned_identity.uami_core.principal_id
 }
