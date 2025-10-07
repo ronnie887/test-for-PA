@@ -1,4 +1,4 @@
-## Resource Group (AVM)
+# Resource Group (AVM)
 module "resource_group" {
   source = "../../../modules/resource_group"
   
