@@ -1,4 +1,4 @@
-name: Terraform CI/CD (Strict Dependency)
+name: Terraform CI/CD (Sequential Plan & Apply)
 
 on:
   push:
@@ -17,188 +17,57 @@ env:
   VAR_FILE: 'environments/dev.tfvars'
 
 jobs:
-  # PLAN JOBS
-  plan-rg-ad:
-    name: Plan rg_ad
+  sequential-deploy:
+    name: Plan & Apply in Dependency Order
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-      - run: |
-          cd config_files/rg_ad
-          terraform init -backend-config="key=rg_ad.tfstate"
-          terraform validate
-          terraform plan -var-file="../../${VAR_FILE}" -out=tfplan-rg_ad
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  plan-iam:
-    name: Plan iam
-    runs-on: ubuntu-latest
-    needs: plan-rg-ad
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v1
+      - name: Azure Login
+        uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-      - run: |
-          cd config_files/iam
-          terraform init -backend-config="key=iam.tfstate"
-          terraform validate
-          terraform plan -var-file="../../${VAR_FILE}" -out=tfplan-iam
 
-  plan-df-sa:
-    name: Plan df_sa
-    runs-on: ubuntu-latest
-    needs: plan-iam
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-      - run: |
-          cd config_files/df_sa
-          terraform init -backend-config="key=df_sa.tfstate"
-          terraform validate
-          terraform plan -var-file="../../${VAR_FILE}" -out=tfplan-df_sa
 
-  plan-rest-storage:
-    name: Plan rest_storage
-    runs-on: ubuntu-latest
-    needs: plan-df-sa
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-      - run: |
-          cd config_files/rest_storage
-          terraform init -backend-config="key=rest_storage.tfstate"
-          terraform validate
-          terraform plan -var-file="../../${VAR_FILE}" -out=tfplan-rest_storage
+      - name: Deploy All Modules Sequentially
+        run: |
+          set -e
+          DIRECTORIES=("rg_ad" "iam" "df_sa" "rest_storage" "compute")
+          
+          for dir in "${DIRECTORIES[@]}"; do
+            echo "=== Processing $dir ==="
+            cd "config_files/$dir"
 
-  plan-compute:
-    name: Plan compute
-    runs-on: ubuntu-latest
-    needs: plan-rest-storage
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-      - run: |
-          cd config_files/compute
-          terraform init -backend-config="key=compute.tfstate"
-          terraform validate
-          terraform plan -var-file="../../${VAR_FILE}" -out=tfplan-compute
+            echo "Initializing Terraform for $dir..."
+            terraform init \
+              -backend-config="key=${dir}.tfstate"
 
-  # APPLY JOBS
-  apply-rg-ad:
-    name: Apply rg_ad
-    runs-on: ubuntu-latest
-    needs: plan-rg-ad
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-      - run: |
-          cd config_files/rg_ad
-          terraform init -backend-config="key=rg_ad.tfstate"
-          terraform apply -var-file="../../${VAR_FILE}" -auto-approve
+            echo "Validating configuration for $dir..."
+            terraform validate
 
-  apply-iam:
-    name: Apply iam
-    runs-on: ubuntu-latest
-    needs: apply-rg-ad
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-      - run: |
-          cd config_files/iam
-          terraform init -backend-config="key=iam.tfstate"
-          terraform apply -var-file="../../${VAR_FILE}" -auto-approve
+            if [ "${{ github.event_name }}" = "push" ]; then
+              echo "Planning $dir..."
+              terraform plan \
+                -var-file="../../${VAR_FILE}" \
+                -out="tfplan-${dir}" \
+                -no-color
+            fi
 
-  apply-df-sa:
-    name: Apply df_sa
-    runs-on: ubuntu-latest
-    needs: apply-iam
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-      - run: |
-          cd config_files/df_sa
-          terraform init -backend-config="key=df_sa.tfstate"
-          terraform apply -var-file="../../${VAR_FILE}" -auto-approve
+            if [ "${{ github.event_name }}" = "pull_request" ] && \
+               [ "${{ github.event.action }}" = "closed" ] && \
+               ${ { github.event.pull_request.merged } }; then
+              echo "Applying $dir..."
+              terraform apply \
+                -var-file="../../${VAR_FILE}" \
+                -auto-approve
+            fi
 
-  apply-rest-storage:
-    name: Apply rest_storage
-    runs-on: ubuntu-latest
-    needs: apply-df-sa
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-      - run: |
-          cd config_files/rest_storage
-          terraform init -backend-config="key=rest_storage.tfstate"
-          terraform apply -var-file="../../${VAR_FILE}" -auto-approve
-
-  apply-compute:
-    name: Apply compute
-    runs-on: ubuntu-latest
-    needs: apply-rest-storage
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-      - run: |
-          cd config_files/compute
-          terraform init -backend-config="key=compute.tfstate"
-          terraform apply -var-file="../../${VAR_FILE}" -auto-approve
+            cd - > /dev/null
+            echo "✅ Completed $dir"
+            echo
+          done
