@@ -8,6 +8,7 @@ on:
       - 'environments/dev.tfvars'
   pull_request:
     branches: [main]
+    types: [closed]
     paths:
       - 'config_files/**'
       - 'environments/dev.tfvars'
