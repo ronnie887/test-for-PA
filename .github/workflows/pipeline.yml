@@ -1,15 +1,16 @@
-name: Multi-Job Sequential Terraform
+name: Terraform Multi-Directory Pipeline
 
 on:
   push:
     branches: [feature/*]
-    paths: ['config_files/**']
+    paths: ['config_files/**', 'environments/dev.tfvars']
   pull_request:
     branches: [main]
-    paths: ['config_files/**']
+    paths: ['config_files/**', 'environments/dev.tfvars']
 
 env:
   TF_VERSION: '1.12.2'
+  VAR_FILE: 'environments/dev.tfvars'
   ARM_CLIENT_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientId }}" >> $GITHUB_ENV
   ARM_CLIENT_SECRET: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientSecret }}" >> $GITHUB_ENV
   ARM_SUBSCRIPTION_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).subscriptionId }}" >> $GITHUB_ENV
@@ -20,8 +21,8 @@ jobs:
     name: Plan All Directories
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    outputs:
-      plan-status: ${{ steps.plan-summary.outputs.status }}
+    #outputs:
+      #plan-status: ${{ steps.plan-summary.outputs.status }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,7 +32,7 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
       
-      - name: Plan All Directories
+      - name: Sequential Plan Execution
         id: plan-all
         run: |
           DIRECTORIES=("rg_ad" "iam" "df_sa" "rest_storage" "compute")
@@ -39,89 +40,46 @@ jobs:
           
           for dir in "${DIRECTORIES[@]}"; do
             echo "=== Planning $dir ==="
-            
-            if [ -d "config_files/$dir" ]; then
-              cd "config_files/$dir"
-              
-              # Initialize
-              if ! terraform init; then
-                echo "Init failed for $dir"
-                PLAN_STATUS="failed"
-                break
-              fi
-              
-              # Validate
-              if ! terraform validate; then
-                echo "Validation failed for $dir"
-                PLAN_STATUS="failed"
-                break
-              fi
-              
-              # Plan
-              if ! terraform plan -out=tfplan -no-color; then
-                echo "Plan failed for $dir"
-                PLAN_STATUS="failed"
-                break
-              fi
-              
-              cd - > /dev/null
-              echo "Plan successful for $dir"
-            else
-              echo "Directory config_files/$dir not found"
-            fi
+            cd "config_files/$dir"
+            terraform init
+            terraform validate
+            terraform plan \
+              -var-file="../../${VAR_FILE}" \
+              -out="tfplan-${dir}" \
+              -no-color
+            cd - > /dev/null
           done
-          
-          echo "status=$PLAN_STATUS" >> $GITHUB_OUTPUT
-      
-      - name: Plan Summary
-        id: plan-summary
-        run: |
-          if [ "${{ steps.plan-all.outputs.status }}" == "success" ]; then
-            echo "All terraform plans successful"
-            echo "status=success" >> $GITHUB_OUTPUT
-          else
-            echo "One or more terraform plans failed"
-            echo "status=failed" >> $GITHUB_OUTPUT
-            exit 1
-          fi
 
-  apply-sequential:
+      - name: Upload Plan Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plans
+          path: config_files/*/tfplan-*
+          retention-days: 5
+            
+  apply-Sequential:
     name: Apply Sequential
     runs-on: ubuntu-latest
+    needs: plan-all
     if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
-    steps:
+    steps: 
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-      
-      - name: Apply in Order
+
+      - name: Sequential Apply Execution
         run: |
-          # Define directories in dependency order
           DIRECTORIES=("rg_ad" "iam" "df_sa" "rest_storage" "compute")
-          
           for dir in "${DIRECTORIES[@]}"; do
             echo "=== Applying $dir ==="
-            
-            if [ -d "config_files/$dir" ]; then
-              cd "config_files/$dir"
-              
-              # Initialize
-              terraform init
-              
-              # Apply
-              if terraform apply -auto-approve; then
-                echo "Apply successful for $dir"
-              else
-                echo "Apply failed for $dir"
-                exit 1
-              fi
-              
-              cd - > /dev/null
-            else
-              echo "Directory config_files/$dir not found, skipping..."
-            fi
+            cd "config_files/$dir"
+            terraform init
+            terraform apply \
+              -var-file="../../${VAR_FILE}" \
+              -auto-approve
+            cd - > /dev/null
           done
