@@ -1,11 +1,11 @@
 # Detect your current public IP automatically
-data "http" "myip" {
-  url = "https://ifconfig.me/ip"
-}
+#data "http" "myip" {
+#  url = "https://ifconfig.me/ip"
+#}
 
-locals {
-  my_ip_cidr = "${chomp(data.http.myip.response_body)}/32"
-}
+#locals {
+#  my_ip_cidr = "${chomp(data.http.myip.response_body)}/32"
+#}
 
 resource "random_integer" "kv_suffix" {
   min = 1000
@@ -35,26 +35,6 @@ module "key_vault" {
       principal_id               = var.service_principal_object_id
     }
   }
-
-  # --- SET NETWORK ACLs HERE ---
-  #network_acls = {
-  #  bypass         = "AzureServices" 
-  #  default_action = "Deny"
-  #  ip_rules       = [local.my_ip_cidr]  # Or ["0.0.0.0/0"] for open (NOT recommended)
-    # Optionally, add virtual network subnet IDs if needed:
-  #  virtual_network_subnet_ids = []
-  #}
-
-  #secrets = {
-  #  sp_client_id = {
-  #    name  = "sp-client-id"
-  #    value = var.secrets_value["sp_client_id"]
-  #  }
-  #  sp_client_secret = {
-  #    name  = "sp-client-secret"
-  #    value = var.secrets_value["sp_client_secret"]
-  #  }
-  #}
   tags = var.tags
 }
 

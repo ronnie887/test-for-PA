@@ -1,13 +1,8 @@
-resource "random_integer" "acr_suffix" {
-  min = 1000
-  max = 9999
-}
-
 module "container_registry" {
   source  = "Azure/avm-res-containerregistry-registry/azurerm"
   version = "~> 0.5"
 
-  name                = "cr${replace(var.project_name, "-", "")}${var.environment}${random_integer.acr_suffix.result}"
+  name                = "acr${replace(var.project_name, "-", "")}${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

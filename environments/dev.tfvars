@@ -1,11 +1,12 @@
-project_name               = "paproject"
-environment                = "dev"
+project_name  = "pa-integrix"
+environment   = "dev"
+location      = "centralus"          
 
 tags = {
   Owner       = "DevTeam"
   Environment = "Development"
   CostCenter  = "Engineering"
-  Project     = "PA-Analytics"
+  Project     = "PA-integriX"
 }
 
 # Database Configuration
@@ -22,7 +23,7 @@ redis_capacity             = 0
 redis_sku_name             = "Basic"
 
 # Azure AD
-azure_ad_app_name          = "PAProject-Dev-ServicePrincipal"
+azure_ad_app_name          = "PA-IntegriX-Dev"
 
 # Synapse Configuration
 synapse_sql_admin_password = "DevSynapsePassword123!"

@@ -1,15 +1,9 @@
-# Random suffixes for unique naming
-resource "random_integer" "adls_suffix" {
-  min = 1000
-  max = 9999
-}
-
 # ADLS Gen2 Storage Account
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "~> 0.6"
 
-  name                = "stadls${replace(var.project_name, "-", "")}${var.environment}${random_integer.adls_suffix.result}"
+  name                = "stadls${replace(var.project_name, "-", "")}${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
   

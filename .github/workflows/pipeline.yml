@@ -1,4 +1,4 @@
-name: Terraform CI/CD (Sequential Plan & Apply)
+name: Terraform Multi-Module Pipeline
 
 on:
   push:
@@ -17,57 +17,74 @@ env:
   VAR_FILE: 'environments/dev.tfvars'
 
 jobs:
-  sequential-deploy:
-    name: Plan & Apply in Dependency Order
+  # PLAN JOBS (Feature Branch Push)
+  plan-resource-group:
+    name: Plan resource_group
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Azure Login
-        uses: azure/login@v1
+      - uses: actions/checkout@v4
+      - uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+      - run: |
+          cd config_files/resource_group
+          terraform init -backend-config="key=resource_group.tfstate"
+          terraform validate
+          terraform plan -var-file="../../${VAR_FILE}" -out=tfplan-resource-group
 
-      - name: Deploy All Modules Sequentially
-        run: |
-          set -e
-          DIRECTORIES=("rg_ad" "iam" "df_sa" "rest_storage" "compute")
-          
-          for dir in "${DIRECTORIES[@]}"; do
-            echo "=== Processing $dir ==="
-            cd "config_files/$dir"
+  plan-azure-ad-sp:
+    name: Plan azure_ad_sp
+    runs-on: ubuntu-latest
+    needs: plan-resource-group
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - run: |
+          cd config_files/iam/azure_ad_sp
+          terraform init -backend-config="key=azure_ad_sp.tfstate"
+          terraform validate
+          terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan-azure-ad-sp
 
-            echo "Initializing Terraform for $dir..."
-            terraform init \
-              -backend-config="key=${dir}.tfstate"
+  # APPLY JOBS (PR Merge to Dev)
+  apply-resource-group:
+    name: Apply resource_group
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - run: |
+          cd config_files/resource_group
+          terraform apply -auto-approve tfplan
 
-            echo "Validating configuration for $dir..."
-            terraform validate
-
-            if [ "${{ github.event_name }}" = "push" ]; then
-              echo "Planning $dir..."
-              terraform plan \
-                -var-file="../../${VAR_FILE}" \
-                -out="tfplan-${dir}" \
-                -no-color
-            fi
-
-            if [ "${{ github.event_name }}" = "pull_request" ] && \
-               [ "${{ github.event.action }}" = "closed" ] && \
-               ${ { github.event.pull_request.merged } }; then
-              echo "Applying $dir..."
-              terraform apply \
-                -var-file="../../${VAR_FILE}" \
-                -auto-approve
-            fi
-
-            cd - > /dev/null
-            echo "✅ Completed $dir"
-            echo
-          done
+  apply-azure-ad-sp:
+    name: Apply azure_ad_sp
+    runs-on: ubuntu-latest
+    needs: apply-resource-group
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - run: |
+          cd config_files/iam/azure_ad_sp
+          terraform apply -auto-approve tfplan
