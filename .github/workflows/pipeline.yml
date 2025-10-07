@@ -71,6 +71,9 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
       - run: |
           cd config_files/resource_group
+          terraform init -backend-config="key=resource_group.tfstate"
+          terraform validate
+          terraform plan -var-file="../../${VAR_FILE}" -out=tfplan
           terraform apply -auto-approve tfplan
 
   apply-azure-ad-sp:
@@ -88,4 +91,7 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
       - run: |
           cd config_files/iam/azure_ad_sp
+          terraform init -backend-config="key=azure_ad_sp.tfstate"
+          terraform validate
+          terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
           terraform apply -auto-approve tfplan
