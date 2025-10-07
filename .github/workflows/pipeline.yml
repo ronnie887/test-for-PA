@@ -17,14 +17,10 @@ env:
   VAR_FILE: 'environments/dev.tfvars'
 
 jobs:
-  terraform:
+  plan-sequential:
+    name: Plan (sequential)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        action: [plan, apply]
-    if: >
-      (matrix.action == 'plan' && github.event_name == 'push') ||
-      (matrix.action == 'apply' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,31 +35,46 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Run Terraform ${{ matrix.action }}
+      - name: Sequential Plan Execution
         run: |
           set -e
           DIRECTORIES=("rg_ad" "iam" "df_sa" "rest_storage" "compute")
           for dir in "${DIRECTORIES[@]}"; do
-            echo "=== ${{ matrix.action }} for $dir ==="
+            echo "=== PLAN for $dir ==="
             cd "config_files/$dir"
-
-            # Init
-            terraform init \
-              -backend-config="key=${dir}.tfstate"
-
-            # Validate
+            terraform init -backend-config="key=${dir}.tfstate"
             terraform validate
+            terraform plan -var-file="../../${VAR_FILE}" -out="tfplan-${dir}" -no-color
+            cd - > /dev/null
+          done
 
-            if [ "${{ matrix.action }}" = "plan" ]; then
-              terraform plan \
-                -var-file="../../${VAR_FILE}" \
-                -out="tfplan-${dir}" \
-                -no-color
-            else
-              terraform apply \
-                -var-file="../../${VAR_FILE}" \
-                -auto-approve
-            fi
+  apply-sequential:
+    name: Apply (sequential)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Sequential Apply Execution
+        run: |
+          set -e
+          DIRECTORIES=("rg_ad" "iam" "df_sa" "rest_storage" "compute")
+          for dir in "${DIRECTORIES[@]}"; do
+            echo "=== APPLY for $dir ==="
+            cd "config_files/$dir"
+            terraform init -backend-config="key=${dir}.tfstate"
+            terraform validate
+            terraform apply -var-file="../../${VAR_FILE}" -auto-approve
             cd - > /dev/null
           done
