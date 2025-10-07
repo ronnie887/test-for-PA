@@ -11,10 +11,10 @@ on:
 env:
   TF_VERSION: '1.12.2'
   VAR_FILE: 'environments/dev.tfvars'
-  ARM_CLIENT_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientId }}" >> $GITHUB_ENV
-  ARM_CLIENT_SECRET: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientSecret }}" >> $GITHUB_ENV
-  ARM_SUBSCRIPTION_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).subscriptionId }}" >> $GITHUB_ENV
-  ARM_TENANT_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).tenantId }}" >> $GITHUB_ENV
+  #ARM_CLIENT_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientId }}" >> $GITHUB_ENV
+  #ARM_CLIENT_SECRET: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientSecret }}" >> $GITHUB_ENV
+  #ARM_SUBSCRIPTION_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).subscriptionId }}" >> $GITHUB_ENV
+  #ARM_TENANT_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).tenantId }}" >> $GITHUB_ENV
 
 jobs:
   plan-all:
@@ -27,6 +27,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
