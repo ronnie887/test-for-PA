@@ -1,27 +1,27 @@
 data "terraform_remote_state" "resource_group" {
-  backend = "local"
+  backend = "azurerm"
   config = {
-    path = "../../resource_group/terraform.tfstate"
+    key = "config_files/resource_group/terraform.tfstate"
   }
 }
 
 data "terraform_remote_state" "uami" {
-  backend = "local"
+  backend = "azurerm"
   config = {
-    path = "../../iam/uami/terraform.tfstate"
+    key = "config_files/iam/uami/terraform.tfstate"
   }
 }
 
 data "terraform_remote_state" "storage_account" {
-  backend = "local"
+  backend = "azurerm"
   config = {
-    path = "../../data_storage/storage_account/terraform.tfstate"
+    key = "config_files/data_storage/storage_account/terraform.tfstate"
   }
 }
 
 data "terraform_remote_state" "azure_ad_sp" {
-  backend = "local"
+  backend = "azurerm"
   config = {
-    path = "../../iam/azure_ad_sp/terraform.tfstate"
+    key = "config_files/iam/azure_ad_sp/terraform.tfstate"
   }
 }

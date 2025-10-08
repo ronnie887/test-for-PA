@@ -11,6 +11,15 @@ provider "azurerm" {
   subscription_id = "adde48e9-ba85-4182-af13-13f9385a101c"
 }
 
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "pa-tfstate-rg"
+    storage_account_name = "patfstatestorage"
+    container_name       = "tfstate"
+    key                  = "config_files/compute/function_app/terraform.tfstate"
+  }
+}
+
 # Web Services (AVM) - Function App
 module "function_app" {
   source = "../../../modules/compute/function_app"
