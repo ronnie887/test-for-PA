@@ -11,6 +11,15 @@ provider "azurerm" {
   subscription_id = "adde48e9-ba85-4182-af13-13f9385a101c"
 }
 
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "pa-tfstate-rg"
+    storage_account_name = "patfstatestorage"
+    container_name       = "tfstate"
+    key                  = "config_files/iam/uami/terraform.tfstate"
+  }
+}
+
 # User Managed Identity (AVM)
 module "managed_identity" {
   source = "../../../modules/iam/user_assigned_managed_identity"

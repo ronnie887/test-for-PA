@@ -50,9 +50,13 @@ jobs:
             #"compute/web_app"
           )
           for mod in "${MODULES[@]}"; do
-            echo "=== $mod ==="
+            echo "=== Planning $mod ==="
             cd "config_files/$mod"
-            terraform init -backend-config="key=$(basename $mod).tfstate"
+            terraform init \
+              -backend-config="resource_group_name=${{ secrets.BACKEND_AZURE_RESOURCE_GROUP_NAME }}" \
+              -backend-config="storage_account_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}" \
+              -backend-config="container_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}" \
+              -backend-config="key=config_files/$mod/terraform.tfstate"
             terraform validate
             terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
             cd - > /dev/null
@@ -79,9 +83,13 @@ jobs:
             #"compute/web_app"
           )
           for mod in "${MODULES[@]}"; do
-            echo "=== $mod ==="
+            echo "=== Deploying $mod ==="
             cd "config_files/$mod"
-            terraform init -backend-config="key=$(basename $mod).tfstate"
+            terraform init \
+              -backend-config="resource_group_name=${{ secrets.BACKEND_AZURE_RESOURCE_GROUP_NAME }}" \
+              -backend-config="storage_account_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}" \
+              -backend-config="container_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}" \
+              -backend-config="key=config_files/$mod/terraform.tfstate"
             terraform validate
             terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
             terraform apply -auto-approve tfplan

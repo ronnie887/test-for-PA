@@ -13,6 +13,15 @@ provider "azurerm" {
 
 provider "azuread" {}
 
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "pa-tfstate-rg"
+    storage_account_name = "patfstatestorage"
+    container_name       = "tfstate"
+    key                  = "config_files/iam/azure_ad_sp/terraform.tfstate"
+  }
+}
+
 # Azure AD Application and Service Principal (CUSTOM - No AVM)
 module "azure_ad_sp" {
   source = "../../../modules/iam/azure_ad_sp"
