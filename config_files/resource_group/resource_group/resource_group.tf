@@ -14,7 +14,7 @@ provider "azurerm" {
 terraform {
   backend "azurerm" {
     resource_group_name  = "pa-tfstate-rg-01"
-    storage_account_name = "patfstatestorage01"
+    storage_account_name = "patfstatestorage02"
     container_name       = "tfstate"
     key                  = "config_files/resource_group/terraform.tfstate"
   }
