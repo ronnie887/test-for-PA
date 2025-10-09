@@ -37,11 +37,11 @@ jobs:
             #"resource_group/resource_group"
             #"iam/azure_ad_sp"
 
-            "iam/uami"
+            #"iam/uami"
 
-            #"data_storage/storage_account"
-            #"data_storage/container_registry"
-            #"compute/app_service_plan"
+            "data_storage/storage_account"
+            "data_storage/container_registry"
+            "compute/app_service_plan"
 
             #"iam/rbac"
             #"iam/key_vault"
@@ -74,11 +74,11 @@ jobs:
             #"resource_group/resource_group"
             #"iam/azure_ad_sp"
 
-            "iam/uami"
+            #"iam/uami"
             
-            #"data_storage/storage_account"
-            #"data_storage/container_registry"
-            #"compute/app_service_plan"
+            "data_storage/storage_account"
+            "data_storage/container_registry"
+            "compute/app_service_plan"
 
             #"iam/key_vault"
             #"iam/rbac"
