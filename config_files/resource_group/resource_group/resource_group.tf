@@ -25,8 +25,8 @@ module "resource_group" {
   source = "../../../modules/resource_group"
   
   name         = "rg-pa-integrix-test1"
-  project_name = "pa_integrix"
-  environment  = "test"
-  location     = "centralus"
-  tags         = local.common_tags
+  location     = var.location
+  project_name = var.project_name
+  environment  = var.environment
+  tags         = var.tags
 }

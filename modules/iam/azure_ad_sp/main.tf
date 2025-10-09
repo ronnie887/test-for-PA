@@ -7,7 +7,6 @@ resource "azuread_application" "main" {
   display_name = var.azure_ad_app_name
 
   tags = [
-    var.app_name,
     var.project_name,
     var.environment,
     "terraform-managed"
@@ -18,7 +17,6 @@ resource "azuread_service_principal" "main" {
   client_id = azuread_application.main.client_id
   
   tags = [
-    var.sp_name,
     var.project_name,
     var.environment,
     "terraform-managed"

@@ -24,10 +24,10 @@ terraform {
 module "managed_identity" {
   source = "../../../modules/iam/user_assigned_managed_identity"
   
-  name                = uami-pa-integrix-test1
+  name                = "uami-pa-integrix-test1"
   project_name        = var.project_name
   environment         = var.environment
   location            = var.location
   resource_group_name = data.terraform_remote_state.resource_group.outputs.resource_group_name
-  tags                = local.common_tags
+  tags                = var.tags
 }

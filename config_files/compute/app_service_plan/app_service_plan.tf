@@ -24,10 +24,11 @@ terraform {
 module "app_service_plan" {
   source = "../../../modules/compute/app_service_plan"
   
+  name                                = "asp-pa-integrix-test1"
   project_name                        = var.project_name
   environment                         = var.environment
   location                            = var.location
   resource_group_name                 = data.terraform_remote_state.resource_group.outputs.resource_group_name
   app_service_plan_sku_name           = var.app_service_plan_sku_name
-  tags                                = local.common_tags
+  tags                                = var.tags
 }

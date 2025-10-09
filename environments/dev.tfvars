@@ -15,6 +15,8 @@ postgresql_admin_password  = "DevPassword123!"
 # App Service Plan Configuration
 app_service_plan_sku_name  = "B1"
 zone_balancing_enabled = false
+
+# container registry
 zone_redundancy_enabled = false
 
 # Redis Configuration

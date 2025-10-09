@@ -1,15 +1,13 @@
 variable "project_name" {
   description = "The name of the project"
   type        = string
+  default     = "pa-integrix"
 }
 
 variable "environment" {
-  description = "Environment name (dev, staging, prod)"
+  description = "Environment name"
   type        = string
-  validation {
-    condition     = contains(["dev", "staging", "prod"], var.environment)
-    error_message = "Environment must be one of: dev, staging, prod."
-  }
+  default     = "test"
 }
 
 variable "location" {
@@ -18,14 +16,15 @@ variable "location" {
   default     = "centralus"
 }
 
-variable "tags" {
-  description = "Common tags for all resources"
-  type        = map(string)
-  default     = {}
-}
+#variable "tags" {
+#  description = "Common tags for all resources"
+#  type        = map(string)
+#  default     = {}
+#}
 
 # Azure AD App Configuration
-variable "azure_ad_app_name" {
-  description = "Name for Azure AD application"
-  type        = string
-}
+#variable "azure_ad_app_name" {
+#  description = "Name for Azure AD application"
+#  type        = string
+#  default     = "PA-IntegriX-Dev"
+#}

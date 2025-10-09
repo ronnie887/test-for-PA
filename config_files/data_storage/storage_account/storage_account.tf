@@ -24,10 +24,11 @@ terraform {
 module "storage_account" {
   source = "../../../modules/data_storage/storage_account"
   
+  name                             = "stadlspaintegrixtest1"
   project_name                     = var.project_name
   environment                      = var.environment
   location                         = var.location
   resource_group_name              = data.terraform_remote_state.resource_group.outputs.resource_group_name
   managed_identity_principal_id    = data.terraform_remote_state.uami.outputs.managed_identity["principal_id"]
-  tags                             = local.common_tags
+  tags                             = var.tags
 }

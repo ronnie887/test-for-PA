@@ -24,6 +24,7 @@ terraform {
 module "key_vault" {
   source = "../../../modules/iam/key_vault"
   
+  name                          = "kv-pa-integrix-test1"
   project_name                  = var.project_name
   environment                   = var.environment
   location                      = var.location
@@ -31,5 +32,5 @@ module "key_vault" {
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   managed_identity_principal_id = data.terraform_remote_state.uami.outputs.managed_identity["principal_id"]
   service_principal_object_id   = data.terraform_remote_state.azure_ad_sp.outputs.service_principal_object_id
-  tags                          = local.common_tags
+  tags                          = var.tags
 }

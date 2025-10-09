@@ -24,10 +24,11 @@ terraform {
 module "static_web_app" {
   source = "../../../modules/compute/static_web_app"
   
+  name                                = "swa1-pa-integrix-test1"
   project_name                        = var.project_name
   environment                         = var.environment
   location                            = var.location
   resource_group_name                 = data.terraform_remote_state.resource_group.outputs.resource_group_name
   managed_identity_resource_id        = data.terraform_remote_state.uami.outputs.managed_identity["resource_id"]
-  tags                                = local.common_tags
+  tags                                = var.tags
 }
