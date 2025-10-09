@@ -39,18 +39,18 @@ jobs:
 
             #"iam/uami"
 
-            "data_storage/storage_account"
-            "data_storage/container_registry"
-            "compute/app_service_plan"
+            #"data_storage/storage_account"
+            #"data_storage/container_registry"
+            #"compute/app_service_plan"
 
-            #"iam/rbac"
-            #"iam/key_vault"
-            #"data_storage/postgres_flexible_server"
-            #"data_storage/redis_cache"
-            #"data_storage/synapse_workspace"
-            #"compute/function_app"
-            #"compute/static_web_app"
-            #"compute/web_app"
+            "iam/rbac"
+            "iam/key_vault"
+            "data_storage/postgres_flexible_server"
+            "data_storage/redis_cache"
+            "data_storage/synapse_workspace"
+            "compute/function_app"
+            "compute/static_web_app"
+            "compute/web_app"
           )
           for mod in "${MODULES[@]}"; do
             echo "=== Planning $mod ==="
@@ -76,18 +76,18 @@ jobs:
 
             #"iam/uami"
             
-            "data_storage/storage_account"
-            "data_storage/container_registry"
-            "compute/app_service_plan"
+            #"data_storage/storage_account"
+            #"data_storage/container_registry"
+            #"compute/app_service_plan"
 
-            #"iam/key_vault"
-            #"iam/rbac"
-            #"data_storage/postgres_flexible_server"
-            #"data_storage/redis_cache"
-            #"data_storage/synapse_workspace"
-            #"compute/function_app"
-            #"compute/static_web_app"
-            #"compute/web_app"
+            "iam/key_vault"
+            "iam/rbac"
+            "data_storage/postgres_flexible_server"
+            "data_storage/redis_cache"
+            "data_storage/synapse_workspace"
+            "compute/function_app"
+            "compute/static_web_app"
+            "compute/web_app"
           )
           for mod in "${MODULES[@]}"; do
             echo "=== Deploying $mod ==="
