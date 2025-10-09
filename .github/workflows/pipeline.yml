@@ -35,9 +35,9 @@ jobs:
           set -e
           MODULES=(
             #"resource_group/resource_group"
-            "iam/azure_ad_sp"
+            #"iam/azure_ad_sp"
 
-            #"iam/uami"
+            "iam/uami"
 
             #"data_storage/storage_account"
             #"data_storage/container_registry"
@@ -72,9 +72,9 @@ jobs:
           set -e
           MODULES=(
             #"resource_group/resource_group"
-            "iam/azure_ad_sp"
+            #"iam/azure_ad_sp"
 
-            #"iam/uami"
+            "iam/uami"
             
             #"data_storage/storage_account"
             #"data_storage/container_registry"
