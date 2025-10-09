@@ -2,7 +2,7 @@ module "postgresql_server" {
   source  = "Azure/avm-res-dbforpostgresql-flexibleserver/azurerm"
   version = "~> 0.1.4"
 
-  name                = "psql-${var.project_name}-${var.environment}"
+  name                = var.name#"psql-${var.project_name}-${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

@@ -26,7 +26,7 @@ terraform {
 module "azure_ad_sp" {
   source = "../../../modules/iam/azure_ad_sp"
   
+  azure_ad_app_name = "PA-IntegriX-Dev"
   project_name      = var.project_name
   environment       = var.environment
-  azure_ad_app_name = var.azure_ad_app_name
 }

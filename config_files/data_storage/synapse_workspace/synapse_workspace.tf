@@ -24,6 +24,7 @@ terraform {
 module "synapse_workspace" {
   source = "../../../modules/data_storage/synapse_workspace"
   
+  name                         = "syn-pa-integrix-test1" 
   project_name                 = var.project_name
   environment                  = var.environment
   location                     = var.location
@@ -32,5 +33,5 @@ module "synapse_workspace" {
   sql_admin_username           = var.synapse_sql_admin_username
   sql_admin_password           = var.synapse_sql_admin_password
   managed_identity_resource_id = data.terraform_remote_state.uami.outputs.managed_identity["resource_id"]
-  tags                         = local.common_tags
+  tags                         = var.tags
 }

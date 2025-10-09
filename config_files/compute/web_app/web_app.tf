@@ -24,6 +24,7 @@ terraform {
 module "web_app" {
   source = "../../../modules/compute/web_app"
   
+  name                                = "wa1-pa-integrix-test1"
   project_name                        = var.project_name
   environment                         = var.environment
   location                            = var.location
@@ -32,5 +33,5 @@ module "web_app" {
   container_registry_login_server     = data.terraform_remote_state.container_registry.outputs.container_registry["login_server"]
   service_plan_id                     = data.terraform_remote_state.app_service_plan.outputs.web_services["app_service_plan_id"]
   app_service_plan_sku_name           = var.app_service_plan_sku_name
-  tags                                = local.common_tags
+  tags                                = var.tags
 }

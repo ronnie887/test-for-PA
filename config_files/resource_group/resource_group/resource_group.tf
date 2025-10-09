@@ -13,8 +13,8 @@ provider "azurerm" {
 
 terraform {
   backend "azurerm" {
-    resource_group_name  = "pa-tfstate-rg"
-    storage_account_name = "patfstatestorage"
+    resource_group_name  = "pa-tfstate-rg-01"
+    storage_account_name = "patfstatestorage02"
     container_name       = "tfstate"
     key                  = "config_files/resource_group/terraform.tfstate"
   }
@@ -24,8 +24,9 @@ terraform {
 module "resource_group" {
   source = "../../../modules/resource_group"
   
+  name         = "rg-pa-integrix-test1"
+  location     = var.location
   project_name = var.project_name
   environment  = var.environment
-  location     = var.location
-  tags         = local.common_tags
+  tags         = var.tags
 }

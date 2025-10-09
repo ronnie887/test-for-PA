@@ -1,3 +1,8 @@
+variable "name" {
+  description = "Name of the Managed Identity"
+  type        = string
+}
+
 variable "project_name" {
   description = "The name of the project"
   type        = string

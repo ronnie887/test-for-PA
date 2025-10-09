@@ -5,17 +5,17 @@ on:
     branches: [feature/*]
     paths:
       - 'config_files/**'
-      - 'environments/dev.tfvars'
+      #- 'environments/dev.tfvars'
   pull_request:
     branches: [main]
     types: [closed]
     paths:
       - 'config_files/**'
-      - 'environments/dev.tfvars'
+      #- 'environments/dev.tfvars'
 
 env:
   TF_VERSION: '1.12.2'
-  VAR_FILE: 'environments/dev.tfvars'
+  #VAR_FILE: 'environments/dev.tfvars'
 
 jobs:
   plan-apply:
@@ -34,20 +34,23 @@ jobs:
         run: |
           set -e
           MODULES=(
-            #"resource_group/resource_group"
+            "resource_group/resource_group"
             #"iam/azure_ad_sp"
+
             #"iam/uami"
-            "iam/key_vault"
+
             #"data_storage/storage_account"
-            "iam/rbac"
             #"data_storage/container_registry"
-            "data_storage/postgres_flexible_server"
-            "data_storage/redis_cache"
-            "data_storage/synapse_workspace"
             #"compute/app_service_plan"
-            "compute/function_app"
-            "compute/static_web_app"
-            "compute/web_app"
+
+            #"iam/rbac"
+            #"iam/key_vault"
+            #"data_storage/postgres_flexible_server"
+            #"data_storage/redis_cache"
+            #"data_storage/synapse_workspace"
+            #"compute/function_app"
+            #"compute/static_web_app"
+            #"compute/web_app"
           )
           for mod in "${MODULES[@]}"; do
             echo "=== Planning $mod ==="
@@ -58,7 +61,8 @@ jobs:
               -backend-config="container_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}" \
               -backend-config="key=config_files/$mod/terraform.tfstate"
             terraform validate
-            terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
+            terraform plan -out=tfplan
+            #terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
             cd - > /dev/null
           done
 
@@ -67,20 +71,23 @@ jobs:
         run: |
           set -e
           MODULES=(
-            #"resource_group/resource_group"
+            "resource_group/resource_group"
             #"iam/azure_ad_sp"
+
             #"iam/uami"
-            "iam/key_vault"
+            
             #"data_storage/storage_account"
-            "iam/rbac"
             #"data_storage/container_registry"
-            "data_storage/postgres_flexible_server"
-            "data_storage/redis_cache"
-            "data_storage/synapse_workspace"
             #"compute/app_service_plan"
-            "compute/function_app"
-            "compute/static_web_app"
-            "compute/web_app"
+
+            #"iam/key_vault"
+            #"iam/rbac"
+            #"data_storage/postgres_flexible_server"
+            #"data_storage/redis_cache"
+            #"data_storage/synapse_workspace"
+            #"compute/function_app"
+            #"compute/static_web_app"
+            #"compute/web_app"
           )
           for mod in "${MODULES[@]}"; do
             echo "=== Deploying $mod ==="
@@ -91,7 +98,8 @@ jobs:
               -backend-config="container_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}" \
               -backend-config="key=config_files/$mod/terraform.tfstate"
             terraform validate
-            terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
+            terraform plan -out=tfplan
+            #terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
             terraform apply -auto-approve tfplan
             cd - > /dev/null
           done

@@ -2,7 +2,7 @@ module "redis_cache" {
   source  = "Azure/avm-res-cache-redis/azurerm"
   version = "~> 0.4"
 
-  name                = "redis-${var.project_name}-${var.environment}"
+  name                = var.name#"redis-${var.project_name}-${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

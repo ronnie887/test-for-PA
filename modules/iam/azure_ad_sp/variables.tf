@@ -1,3 +1,13 @@
+#variable "app_name" {
+#  description = "The name of the ad app"
+#  type        = string
+#}
+
+#variable "sp_name" {
+#  description = "The name of the sp"
+#  type        = string
+#}
+
 variable "project_name" {
   description = "The name of the project"
   type        = string

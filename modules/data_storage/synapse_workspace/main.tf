@@ -1,6 +1,6 @@
 # Use native Terraform resources since no AVM module is published yet
 resource "azurerm_synapse_workspace" "main" {
-  name                = "synapse-${var.project_name}-${var.environment}"
+  name                = var.name#"synapse-${var.project_name}-${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

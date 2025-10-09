@@ -24,6 +24,7 @@ terraform {
 module "redis_cache" {
   source = "../../../modules/data_storage/redis_cache"
   
+  name                = "redis-pa-integrix-test1"
   project_name        = var.project_name
   environment         = var.environment
   location            = var.location
@@ -31,5 +32,5 @@ module "redis_cache" {
   redis_capacity      = var.redis_capacity
   #redis_family        = var.redis_family
   redis_sku_name      = var.redis_sku_name
-  tags                = local.common_tags
+  tags                = var.tags
 }
