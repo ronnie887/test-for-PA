@@ -24,8 +24,9 @@ terraform {
 module "resource_group" {
   source = "../../../modules/resource_group"
   
-  project_name = var.project_name
-  environment  = var.environment
-  location     = var.location
+  name         = rg-pa-integrix-test1
+  project_name = pa_integrix
+  environment  = test
+  location     = centralus
   tags         = local.common_tags
 }

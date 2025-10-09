@@ -2,7 +2,7 @@ module "container_registry" {
   source  = "Azure/avm-res-containerregistry-registry/azurerm"
   version = "~> 0.5"
 
-  name                = "acr${replace(var.project_name, "-", "")}${var.environment}"
+  name                = var.name#"acr${replace(var.project_name, "-", "")}${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

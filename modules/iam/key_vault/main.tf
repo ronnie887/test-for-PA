@@ -7,16 +7,16 @@
 #  my_ip_cidr = "${chomp(data.http.myip.response_body)}/32"
 #}
 
-resource "random_integer" "kv_suffix" {
-  min = 1000
-  max = 9999
-}
+#resource "random_integer" "kv_suffix" {
+#  min = 1000
+#  max = 9999
+#}
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "~> 0.10"
 
-  name                = "kv-${var.project_name}-${var.environment}-${random_integer.kv_suffix.result}"
+  name                = var.name#"kv-${var.project_name}-${var.environment}-${random_integer.kv_suffix.result}"
   resource_group_name = var.resource_group_name
   location            = var.location
   tenant_id           = var.tenant_id

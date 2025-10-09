@@ -24,6 +24,7 @@ terraform {
 module "managed_identity" {
   source = "../../../modules/iam/user_assigned_managed_identity"
   
+  name                = uami-pa-integrix-test1
   project_name        = var.project_name
   environment         = var.environment
   location            = var.location

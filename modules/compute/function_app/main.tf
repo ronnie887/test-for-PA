@@ -3,7 +3,7 @@ module "function_app" {
   source  = "Azure/avm-res-web-site/azurerm"
   version = "~> 0.19"
 
-  name                     = "func-${var.project_name}-${var.environment}"
+  name                     = var.name#"func-${var.project_name}-${var.environment}"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   service_plan_resource_id = var.service_plan_id

@@ -5,17 +5,17 @@ on:
     branches: [feature/*]
     paths:
       - 'config_files/**'
-      - 'environments/dev.tfvars'
+      #- 'environments/dev.tfvars'
   pull_request:
     branches: [main]
     types: [closed]
     paths:
       - 'config_files/**'
-      - 'environments/dev.tfvars'
+      #- 'environments/dev.tfvars'
 
 env:
   TF_VERSION: '1.12.2'
-  VAR_FILE: 'environments/dev.tfvars'
+  #VAR_FILE: 'environments/dev.tfvars'
 
 jobs:
   plan-apply:
@@ -34,7 +34,7 @@ jobs:
         run: |
           set -e
           MODULES=(
-            #"resource_group/resource_group"
+            "resource_group/resource_group"
             #"iam/azure_ad_sp"
 
             #"iam/uami"
@@ -61,7 +61,8 @@ jobs:
               -backend-config="container_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}" \
               -backend-config="key=config_files/$mod/terraform.tfstate"
             terraform validate
-            terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
+            terraform plan -out=tfplan
+            #terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
             cd - > /dev/null
           done
 
@@ -70,7 +71,7 @@ jobs:
         run: |
           set -e
           MODULES=(
-            #"resource_group/resource_group"
+            "resource_group/resource_group"
             #"iam/azure_ad_sp"
 
             #"iam/uami"
@@ -97,7 +98,8 @@ jobs:
               -backend-config="container_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}" \
               -backend-config="key=config_files/$mod/terraform.tfstate"
             terraform validate
-            terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
+            terraform plan -out=tfplan
+            #terraform plan -var-file="../../../${VAR_FILE}" -out=tfplan
             terraform apply -auto-approve tfplan
             cd - > /dev/null
           done

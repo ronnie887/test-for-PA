@@ -3,7 +3,7 @@ module "web_app" {
   source  = "Azure/avm-res-web-site/azurerm"
   version = "~> 0.19"
 
-  name                = "app-${var.project_name}-${var.environment}"
+  name                = var.name#"app-${var.project_name}-${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

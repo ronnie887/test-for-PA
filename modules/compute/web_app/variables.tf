@@ -1,8 +1,7 @@
-#variable "name" {
-#  description = "web app name"
-#  type = string
-#  default = "pa-wp"
-#}
+variable "name" {
+  description = "name of the web app name"
+  type = string
+}
 
 variable "project_name" {
   description = "The name of the project"

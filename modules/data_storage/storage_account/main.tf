@@ -3,7 +3,7 @@ module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "~> 0.6"
 
-  name                = "stadls${replace(var.project_name, "-", "")}${var.environment}"
+  name                = var.name#"stadls${replace(var.project_name, "-", "")}${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
   
