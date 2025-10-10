@@ -28,6 +28,11 @@ variable "app_service_plan_sku_name" {
   type        = string
 }
 
+variable "zone_balancing_enabled" {
+  description = "Zone balancing"
+  type = bool
+}
+
 variable "tags" {
   description = "Tags for web services"
   type        = map(string)
