@@ -1,0 +1,9 @@
+data "terraform_remote_state" "resource_group" {
+  backend = "azurerm"
+  config = {
+    resource_group_name  = "rg-integrix-tfstate" #check
+    storage_account_name = "stintegrixtfstatedev" #check
+    container_name       = "tfstate"
+    key = "dev/resource_group/resource_group/terraform.tfstate"
+  }
+}
