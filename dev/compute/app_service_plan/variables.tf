@@ -31,7 +31,7 @@ variable "tags" {
 variable "app_service_plan_sku_name" {
   description = "SKU name for the App Service Plan"
   type        = string
-  default     = "B1"
+  default     = "S1"
 }
 
 variable "zone_balancing_enabled" {

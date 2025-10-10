@@ -30,5 +30,6 @@ module "app_service_plan" {
   location                            = var.location
   resource_group_name                 = data.terraform_remote_state.resource_group.outputs.resource_group_name
   app_service_plan_sku_name           = var.app_service_plan_sku_name
+  zone_balancing_enabled              = var.zone_balancing_enabled
   tags                                = var.tags
 }
