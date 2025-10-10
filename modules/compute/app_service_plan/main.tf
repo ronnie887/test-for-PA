@@ -9,6 +9,6 @@ module "app_service_plan" {
 
   os_type  = "Linux"
   sku_name = var.app_service_plan_sku_name
-  #zone_balancing_enabled = false
+  zone_balancing_enabled = var.zone_balancing_enabled
   tags = var.tags
 }
