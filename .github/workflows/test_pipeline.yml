@@ -32,7 +32,7 @@ jobs:
         run: |
           set -e
           MODULES=(
-            #"resource_group/resource_group"
+            "resource_group/resource_group"
             #"iam/azure_ad_sp"
 
             #"iam/uami"
