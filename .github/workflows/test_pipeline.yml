@@ -60,7 +60,7 @@ jobs:
               -backend-config="key=test/$mod/terraform.tfstate"
             terraform validate
             terraform plan -out=tfplan
-            cd - > /test/null
+            cd - > /dev/null
           done
 
       - name: Plan and Apply Modules (on PR merge to dev)
@@ -97,5 +97,5 @@ jobs:
             terraform validate
             terraform plan -out=tfplan
             terraform apply -auto-approve tfplan
-            cd - > /test/null
+            cd - > /dev/null
           done
