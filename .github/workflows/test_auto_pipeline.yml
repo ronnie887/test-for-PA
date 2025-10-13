@@ -1,0 +1,277 @@
+name: Terraform CI/CD
+
+on:
+  push:
+    branches: [feature/*]
+    paths:
+      - 'test/**'
+  pull_request:
+    branches: [main]
+    types: [closed]
+    paths:
+      - 'test/**'
+
+env:
+  TF_VERSION: '1.12.2'
+
+jobs:
+  # Detect which modules have changed
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed_modules: ${{ steps.get-changed-modules.outputs.modules }}
+      has_changes: ${{ steps.get-changed-modules.outputs.has_changes }}
+      resource_group: ${{ steps.filter.outputs.resource_group }}
+      iam_azure_ad_sp: ${{ steps.filter.outputs.iam_azure_ad_sp }}
+      iam_uami: ${{ steps.filter.outputs.iam_uami }}
+      storage_account: ${{ steps.filter.outputs.storage_account }}
+      container_registry: ${{ steps.filter.outputs.container_registry }}
+      app_service_plan: ${{ steps.filter.outputs.app_service_plan }}
+      iam_rbac: ${{ steps.filter.outputs.iam_rbac }}
+      iam_key_vault: ${{ steps.filter.outputs.iam_key_vault }}
+      postgres_flexible_server: ${{ steps.filter.outputs.postgres_flexible_server }}
+      redis_cache: ${{ steps.filter.outputs.redis_cache }}
+      synapse_workspace: ${{ steps.filter.outputs.synapse_workspace }}
+      function_app: ${{ steps.filter.outputs.function_app }}
+      static_web_app: ${{ steps.filter.outputs.static_web_app }}
+      web_app: ${{ steps.filter.outputs.web_app }}
+      
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need to fetch previous commit for comparison
+          
+      - name: Detect changed modules using path filters
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            resource_group:
+              - 'test/resource_group/**'
+            iam_azure_ad_sp:
+              - 'test/iam/azure_ad_sp/**'
+            iam_uami:
+              - 'test/iam/uami/**'
+            storage_account:
+              - 'test/data_storage/storage_account/**'
+            container_registry:
+              - 'test/data_storage/container_registry/**'
+            app_service_plan:
+              - 'test/compute/app_service_plan/**'
+            iam_rbac:
+              - 'test/iam/rbac/**'
+            iam_key_vault:
+              - 'test/iam/key_vault/**'
+            postgres_flexible_server:
+              - 'test/data_storage/postgres_flexible_server/**'
+            redis_cache:
+              - 'test/data_storage/redis_cache/**'
+            synapse_workspace:
+              - 'test/data_storage/synapse_workspace/**'
+            function_app:
+              - 'test/compute/function_app/**'
+            static_web_app:
+              - 'test/compute/static_web_app/**'
+            web_app:
+              - 'test/compute/web_app/**'
+              
+      - name: Build list of changed modules
+        id: get-changed-modules
+        run: |
+          CHANGED_MODULES=()
+          
+          # Check each module and add to array if changed
+          if [[ "${{ steps.filter.outputs.resource_group }}" == "true" ]]; then
+            CHANGED_MODULES+=("resource_group/resource_group")
+          fi
+          if [[ "${{ steps.filter.outputs.iam_azure_ad_sp }}" == "true" ]]; then
+            CHANGED_MODULES+=("iam/azure_ad_sp")
+          fi
+          if [[ "${{ steps.filter.outputs.iam_uami }}" == "true" ]]; then
+            CHANGED_MODULES+=("iam/uami")
+          fi
+          if [[ "${{ steps.filter.outputs.storage_account }}" == "true" ]]; then
+            CHANGED_MODULES+=("data_storage/storage_account")
+          fi
+          if [[ "${{ steps.filter.outputs.container_registry }}" == "true" ]]; then
+            CHANGED_MODULES+=("data_storage/container_registry")
+          fi
+          if [[ "${{ steps.filter.outputs.app_service_plan }}" == "true" ]]; then
+            CHANGED_MODULES+=("compute/app_service_plan")
+          fi
+          if [[ "${{ steps.filter.outputs.iam_rbac }}" == "true" ]]; then
+            CHANGED_MODULES+=("iam/rbac")
+          fi
+          if [[ "${{ steps.filter.outputs.iam_key_vault }}" == "true" ]]; then
+            CHANGED_MODULES+=("iam/key_vault")
+          fi
+          if [[ "${{ steps.filter.outputs.postgres_flexible_server }}" == "true" ]]; then
+            CHANGED_MODULES+=("data_storage/postgres_flexible_server")
+          fi
+          if [[ "${{ steps.filter.outputs.redis_cache }}" == "true" ]]; then
+            CHANGED_MODULES+=("data_storage/redis_cache")
+          fi
+          if [[ "${{ steps.filter.outputs.synapse_workspace }}" == "true" ]]; then
+            CHANGED_MODULES+=("data_storage/synapse_workspace")
+          fi
+          if [[ "${{ steps.filter.outputs.function_app }}" == "true" ]]; then
+            CHANGED_MODULES+=("compute/function_app")
+          fi
+          if [[ "${{ steps.filter.outputs.static_web_app }}" == "true" ]]; then
+            CHANGED_MODULES+=("compute/static_web_app")
+          fi
+          if [[ "${{ steps.filter.outputs.web_app }}" == "true" ]]; then
+            CHANGED_MODULES+=("compute/web_app")
+          fi
+          
+          # Convert array to JSON for matrix strategy
+          if [ ${#CHANGED_MODULES[@]} -eq 0 ]; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "modules=[]" >> $GITHUB_OUTPUT
+            echo "No modules changed"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            MODULES_JSON=$(printf '%s\n' "${CHANGED_MODULES[@]}" | jq -R -s -c 'split("\n")[:-1]')
+            echo "modules=$MODULES_JSON" >> $GITHUB_OUTPUT
+            echo "Changed modules: ${CHANGED_MODULES[*]}"
+          fi
+
+  # Plan stage - only for changed modules
+  plan-changed-modules:
+    if: needs.detect-changes.outputs.has_changes == 'true' && github.event_name == 'push'
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: ${{ fromJSON(needs.detect-changes.outputs.changed_modules) }}
+        
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Plan ${{ matrix.module }}
+        run: |
+          echo "Planning changed module: ${{ matrix.module }}"
+          cd "test/${{ matrix.module }}"
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.BACKEND_AZURE_RESOURCE_GROUP_NAME }}" \
+            -backend-config="storage_account_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}" \
+            -backend-config="container_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}" \
+            -backend-config="key=test/${{ matrix.module }}/terraform.tfstate"
+          terraform validate
+          terraform plan -out=tfplan
+    
+      - name: Sanitize artifact name
+        id: sanitize
+        run: |
+            SAFE_NAME=$(echo "${{ matrix.module }}" | tr '/' '-' )
+            echo "name=tfplan-$SAFE_NAME-${{ github.sha }}" >> $GITHUB_OUTPUT    
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.sanitize.outputs.name }}
+          path: test/${{ matrix.module }}/tfplan
+          retention-days: 5
+
+  # Apply stage - only for changed modules (on PR merge)
+  apply-changed-modules:
+    if: needs.detect-changes.outputs.has_changes == 'true' && github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: ${{ fromJSON(needs.detect-changes.outputs.changed_modules) }}
+        
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Apply ${{ matrix.module }}
+        run: |
+          echo "Applying changed module: ${{ matrix.module }}"
+          cd "test/${{ matrix.module }}"
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.BACKEND_AZURE_RESOURCE_GROUP_NAME }}" \
+            -backend-config="storage_account_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}" \
+            -backend-config="container_name=${{ secrets.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}" \
+            -backend-config="key=test/${{ matrix.module }}/terraform.tfstate"
+          terraform validate
+          terraform plan -out=tfplan
+          terraform apply -auto-approve tfplan
+
+  # Fallback: Deploy all modules if no specific changes detected (for manual override)
+  deploy-all-modules:
+    if: needs.detect-changes.outputs.has_changes == 'false'
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: No changes detected - manual deployment
+        if: github.event_name == 'push'
+        run: |
+          echo "No specific module changes detected."
+          echo "To manually deploy specific modules, modify files in the respective test/ directories."
+          
+      - name: No changes detected - skipping deployment
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "No changes detected - skipping deployment"
+
+  # Summary job
+  deployment-summary:
+    if: always()
+    needs: [detect-changes, plan-changed-modules, apply-changed-modules, deploy-all-modules]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "## Module Change Detection Summary" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.detect-changes.outputs.has_changes }}" == "true" ]]; then
+            echo "**Changes Detected**: Selective deployment executed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Processed Modules:" >> $GITHUB_STEP_SUMMARY
+            
+            MODULES='${{ needs.detect-changes.outputs.changed_modules }}'
+            echo "$MODULES" | jq -r '.[]' | while read module; do
+              echo "- \`$module\`" >> $GITHUB_STEP_SUMMARY
+            done
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Module-Specific Changes:" >> $GITHUB_STEP_SUMMARY
+            echo "- Resource Group: ${{ needs.detect-changes.outputs.resource_group == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- IAM Azure AD SP: ${{ needs.detect-changes.outputs.iam_azure_ad_sp == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- IAM UAMI: ${{ needs.detect-changes.outputs.iam_uami == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Storage Account: ${{ needs.detect-changes.outputs.storage_account == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Container Registry: ${{ needs.detect-changes.outputs.container_registry == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- App Service Plan: ${{ needs.detect-changes.outputs.app_service_plan == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Key Vault: ${{ needs.detect-changes.outputs.iam_key_vault == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- RBAC: ${{ needs.detect-changes.outputs.iam_rbac == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Postgres Flexible Server: ${{ needs.detect-changes.outputs.postgres_flexible_server == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Redis cache: ${{ needs.detect-changes.outputs.redis_cache == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Synapse Workspace: ${{ needs.detect-changes.outputs.synapse_workspace == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Function App: ${{ needs.detect-changes.outputs.function_app == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Static Web App: ${{ needs.detect-changes.outputs.static_web_app == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Web App: ${{ needs.detect-changes.outputs.web_app == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**No Changes Detected**: All modules skipped for efficiency" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "To deploy specific modules, modify files in the respective \`test/\` directories." >> $GITHUB_STEP_SUMMARY
+          fi
