@@ -10,8 +10,6 @@ on:
     types: [closed]
     paths:
       - 'test/**'
-
-  ## === Manual trigger for destroy (Pattern 1) ===
   workflow_dispatch:
     inputs:
       module:
