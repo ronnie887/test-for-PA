@@ -20,7 +20,7 @@ terraform {
   }
 }
 
-# Storage Accounts (AVM) - ADLS Gen2
+## Storage Accounts (AVM) - ADLS Gen2
 module "storage_account" {
   source = "../../../modules/data_storage/storage_account"
   

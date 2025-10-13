@@ -20,7 +20,7 @@ terraform {
   }
 }
 
-# Container Registry (AVM)
+## Container Registry (AVM)
 module "container_registry" {
   source = "../../../modules/data_storage/container_registry"
   
