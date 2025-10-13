@@ -47,7 +47,7 @@ jobs:
         with:
           filters: |
             resource_group:
-              - 'test/resource_group/resource_group**'
+              - 'test/resource_group/**'
             iam_azure_ad_sp:
               - 'test/iam/azure_ad_sp/**'
             iam_uami:
