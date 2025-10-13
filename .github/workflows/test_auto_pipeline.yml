@@ -11,7 +11,7 @@ on:
     paths:
       - 'test/**'
 
-  # === Manual trigger for destroy (Pattern 1) ===
+  ## === Manual trigger for destroy (Pattern 1) ===
   workflow_dispatch:
     inputs:
       module:
