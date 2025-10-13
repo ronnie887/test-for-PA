@@ -20,7 +20,7 @@ terraform {
   }
 }
 
-# Database (AVM) - PostgreSQL Flexible Server
+## Database (AVM) - PostgreSQL Flexible Server
 module "postgresql_server" {
   source = "../../../modules/data_storage/postgres_flexible_server"
   
