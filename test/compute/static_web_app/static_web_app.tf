@@ -20,7 +20,7 @@ terraform {
   }
 }
 
-# Web Services (AVM) - Static Web App
+## Web Services (AVM) - Static Web App
 module "static_web_app" {
   source = "../../../modules/compute/static_web_app"
   

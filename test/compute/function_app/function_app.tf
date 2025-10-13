@@ -20,7 +20,7 @@ terraform {
   }
 }
 
-# Web Services (AVM) - Function App
+## Web Services (AVM) - Function App
 module "function_app" {
   source = "../../../modules/compute/function_app"
   

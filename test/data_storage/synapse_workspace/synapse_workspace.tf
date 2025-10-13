@@ -20,7 +20,7 @@ terraform {
   }
 }
 
-# Synapse Workspace (CUSTOM - Proposed but not published yet)
+## Synapse Workspace (CUSTOM - Proposed but not published yet)
 module "synapse_workspace" {
   source = "../../../modules/data_storage/synapse_workspace"
   
