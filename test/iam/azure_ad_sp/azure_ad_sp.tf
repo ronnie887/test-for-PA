@@ -22,7 +22,7 @@ terraform {
   }
 }
 
-## Azure AD Application and Service Principal (CUSTOM - No AVM)
+# Azure AD Application and Service Principal (CUSTOM - No AVM)
 module "azure_ad_sp" {
   source = "../../../modules/iam/azure_ad_sp"
   

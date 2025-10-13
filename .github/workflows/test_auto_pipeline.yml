@@ -165,11 +165,16 @@ jobs:
             -backend-config="key=test/${{ matrix.module }}/terraform.tfstate"
           terraform validate
           terraform plan -out=tfplan
-          
+    
+      - name: Sanitize artifact name
+        id: sanitize
+        run: |
+            SAFE_NAME=$(echo "${{ matrix.module }}" | tr '/' '-' )
+            echo "name=tfplan-$SAFE_NAME-${{ github.sha }}" >> $GITHUB_OUTPUT    
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan-${{ matrix.module }}-${{ github.sha }}
+          name: ${{ steps.sanitize.outputs.name }}
           path: test/${{ matrix.module }}/tfplan
           retention-days: 5
 
