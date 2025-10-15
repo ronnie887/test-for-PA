@@ -35,6 +35,8 @@ on:
 
 env:
   TF_VERSION: '1.12.2'
+  TF_VAR_postgresql_admin_password: ${{ secrets.POSTGRESQL_ADMIN_PASSWORD }}
+  TF_VAR_synapse_sql_admin_password: ${{ secrets.SYNAPSE_SQL_ADMIN_PASSWORD }}
 
 jobs:
   # Detect which modules have changed
@@ -158,6 +160,7 @@ jobs:
             echo "Changed modules: ${CHANGED_MODULES[*]}"
           fi
 
+
   # Plan stage - only for changed modules
   plan-changed-modules:
     if: needs.detect-changes.outputs.has_changes == 'true' && github.event_name == 'push'
@@ -260,58 +263,3 @@ jobs:
           echo "=================================="
           echo "PROCEEDING WITH DESTROY..."
           terraform destroy -auto-approve
-
-  # Summary job
-  deployment-summary:
-    if: always()
-    needs: [detect-changes, plan-changed-modules, apply-changed-modules]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deployment Summary
-        run: |
-          echo "## Module Change Detection Summary" >> $GITHUB_STEP_SUMMARY
-          
-          if [[ "${{ needs.detect-changes.outputs.has_changes }}" == "true" ]]; then
-            echo "**Changes Detected**: Selective deployment executed" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Processed Modules:" >> $GITHUB_STEP_SUMMARY
-            
-            MODULES='${{ needs.detect-changes.outputs.changed_modules }}'
-            echo "$MODULES" | jq -r '.[]' | while read module; do
-              echo "- \`$module\`" >> $GITHUB_STEP_SUMMARY
-            done
-            
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Module-Specific Changes:" >> $GITHUB_STEP_SUMMARY
-            echo "- Resource Group: ${{ needs.detect-changes.outputs.resource_group == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- IAM Azure AD SP: ${{ needs.detect-changes.outputs.iam_azure_ad_sp == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- IAM UAMI: ${{ needs.detect-changes.outputs.iam_uami == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Storage Account: ${{ needs.detect-changes.outputs.storage_account == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Container Registry: ${{ needs.detect-changes.outputs.container_registry == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- App Service Plan: ${{ needs.detect-changes.outputs.app_service_plan == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Key Vault: ${{ needs.detect-changes.outputs.iam_key_vault == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- RBAC: ${{ needs.detect-changes.outputs.iam_rbac == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Postgres Flexible Server: ${{ needs.detect-changes.outputs.postgres_flexible_server == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Redis cache: ${{ needs.detect-changes.outputs.redis_cache == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Synapse Workspace: ${{ needs.detect-changes.outputs.synapse_workspace == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Function App: ${{ needs.detect-changes.outputs.function_app == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Static Web App: ${{ needs.detect-changes.outputs.static_web_app == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Web App: ${{ needs.detect-changes.outputs.web_app == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "**No Changes Detected**: All modules skipped for efficiency" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "To deploy specific modules, modify files in the respective \`test/\` directories." >> $GITHUB_STEP_SUMMARY
-          fi
-        
-  # Summary for destroy operations
-  destroy-summary:
-    if: always() && github.event_name == 'workflow_dispatch'
-    needs: [terraform-destroy]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Destroy Summary
-        run: |
-          echo "## Terraform Destroy Summary" >> $GITHUB_STEP_SUMMARY
-          echo "**Module Destroyed**: \`${{ github.event.inputs.module }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Warning**: All resources in this module have been permanently deleted from Azure." >> $GITHUB_STEP_SUMMARY

@@ -39,5 +39,4 @@ variable "postgresql_admin_password" {
   description = "PostgreSQL administrator password"
   type        = string
   sensitive   = true
-  default     = "DevPassword123!"
 }
