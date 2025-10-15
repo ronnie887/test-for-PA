@@ -39,7 +39,7 @@ env:
   TF_VAR_synapse_sql_admin_password: ${{ secrets.SYNAPSE_SQL_ADMIN_PASSWORD }}
 
 jobs:
-  # Detect which modules have changed
+  ## Detect which modules have changed
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
