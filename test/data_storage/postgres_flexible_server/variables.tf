@@ -1,31 +1,25 @@
 variable "project_name" {
   description = "The name of the project"
   type        = string
-  default     = "pa-integrix"
+  default     = ""
 }
 
 variable "environment" {
   description = "Environment name"
   type        = string
-  default     = "test"
+  default     = ""
 }
 
 variable "location" {
   description = "Azure region for resources"
   type        = string
-  default     = "centralus"
+  default     = ""
 }
 
 variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)
-  default     = {
-    Owner      = "DevTeam"
-    Environment = "Development"
-    CostCenter = "Engineering"
-    Project    = "PA-integriX"
-    ManagedBy   = "Terraform"
-    }
+  default     = {}
 }
 
 # Database Configuration

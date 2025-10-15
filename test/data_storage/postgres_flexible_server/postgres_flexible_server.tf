@@ -25,11 +25,17 @@ module "postgresql_server" {
   source = "../../../modules/data_storage/postgres_flexible_server"
   
   name                = "psql-pa-integrix-test1"
-  project_name        = var.project_name
-  environment         = var.environment
-  location            = var.location
+  project_name        = "pa-integrix"
+  environment         = "test"
+  location            = "centralus"
   resource_group_name = data.terraform_remote_state.resource_group.outputs.resource_group_name
   admin_username      = var.postgresql_admin_username
   admin_password      = var.postgresql_admin_password
-  tags                = var.tags
+  tags                = {
+    Owner      = "DevTeam"
+    Environment = "Development"
+    CostCenter = "Engineering"
+    Project    = "PA-integriX"
+    ManagedBy   = "Terraform"
+    }
 }
