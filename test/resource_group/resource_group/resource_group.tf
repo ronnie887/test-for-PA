@@ -20,13 +20,19 @@ terraform {
   }
 }
 
-## Resource Group (AVM)
+# Resource Group (AVM)
 module "resource_group" {
   source = "../../../modules/resource_group"
   
-  name         = "rg-pa-integrix-test1"
-  location     = var.location
-  project_name = var.project_name
-  environment  = var.environment
-  tags         = var.tags
+  name         = "rg-pa-integrix-test2"
+  project_name = "pa-integrix"
+  environment  = "test"
+  location     = "centralus"
+  tags         = {
+    Owner      = "DevTeam"
+    Environment = "Development"
+    CostCenter = "Engineering"
+    Project    = "PA-integriX"
+    ManagedBy   = "Terraform"
+  }
 }

@@ -25,11 +25,17 @@ module "app_service_plan" {
   source = "../../../modules/compute/app_service_plan"
   
   name                                = "asp-pa-integrix-test1"
-  project_name                        = var.project_name
-  environment                         = var.environment
-  location                            = var.location
+  project_name                        = "pa-integrix"
+  environment                         = "test"
+  location                            = "centralus"
   resource_group_name                 = data.terraform_remote_state.resource_group.outputs.resource_group_name
   app_service_plan_sku_name           = var.app_service_plan_sku_name
   zone_balancing_enabled              = var.zone_balancing_enabled
-  tags                                = var.tags
+  tags                                = {
+    Owner      = "DevTeam"
+    Environment = "Development"
+    CostCenter = "Engineering"
+    Project    = "PA-integriX"
+    ManagedBy   = "Terraform"
+  }
 }
